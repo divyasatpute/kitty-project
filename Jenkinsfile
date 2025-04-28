@@ -12,60 +12,33 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Build & Tag ') {
             steps {
-                script {
-                    // Build the Docker image for the application
-                    sh 'docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest .'
+                script{
+                   withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+
+                sh 'docker build -t divyasatpute/kitty:latest . --no-cache '
+                   }
                 }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    // Run SonarQube analysis for code quality checks
-                    sh """
-                    sonar-scanner \
-                        -Dsonar.projectKey=${SONARQUBE_PROJECT_KEY} \
-                        -Dsonar.projectName=${SONARQUBE_PROJECT_NAME} \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=${SONARQUBE_URL}
-                    """
-                }
+                withSonarQubeEnv('sonar-server') {
+                sh '''$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=kitty -Dsonar.projectKey=kitty \
+                 -Dsonar.java.binaries=target'''
+               }
             }
         }
 
-        stage('Run Tests') {
+        stage('Docker Push') {
             steps {
-                script {
-                    // Run tests (adjust this according to your stack)
-                    // Example: if Node.js, run `npm install && npm test`
-                    echo 'Running tests...'
-                }
-            }
-        }
+                script{
+                   withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
 
-        stage('Push Docker Image to Registry') {
-            steps {
-                script {
-                    // Log in to Docker registry
-                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-
-                    // Push the built Docker image to Docker registry
-                    sh 'docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest'
-                }
-            }
-        }
-
-        stage('Deploy to EKS with ArgoCD') {
-            steps {
-                script {
-                    // Set up kubectl to interact with AWS EKS cluster
-                    sh 'aws eks --region ${AWS_REGION} update-kubeconfig --name ${EKS_CLUSTER}'
-
-                    // Sync the application using ArgoCD for deployment
-                    sh 'argocd app sync ${ARGOCD_APP_NAME} --auth-token <argo-auth-token>'
+                sh 'docker push divyasatpute/kitty:latest'
+                   }
                 }
             }
         }
