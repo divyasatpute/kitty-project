@@ -2,11 +2,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kitty-project-service
-  namespace: webapp  # Ensure this is the same namespace as your deployment
+  namespace: webapp  # Ensure this matches your deployment's namespace
 spec:
   selector:
-    app: kitty-project  # Should match the label of the pods created by your deployment
+    app: kitty-project  # The selector should match the label of the deployment
   ports:
-    - port: 80        # Port on which the service is exposed externally
-      targetPort: 8080 # Internal port of the container
-  type: LoadBalancer   # This will provision an external load balancer on cloud providers (e.g., AWS ELB)
+    - protocol: TCP
+      port: 80        # Exposed port for the external world
+      targetPort: 8501 # Port the app listens to inside the container (Streamlit default)
+  type: LoadBalancer   # Exposes the service externally via a cloud load balancer (AWS ELB)
