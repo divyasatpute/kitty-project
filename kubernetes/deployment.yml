@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kitty-project
+  labels:
+    app: kitty-project
+spec:
+  replicas: 3  # Number of desired pods
+  selector:
+    matchLabels:
+      app: kitty-project
+  template:
+    metadata:
+      labels:
+        app: kitty-project
+    spec:
+      containers:
+      - name: kitty-project-container
+        image: <your-docker-image>:<tag> # Replace with your Docker image and tag
+        ports:
+        - containerPort: 8080 # Replace with the port your app is running on
+        env:
+        - name: ENVIRONMENT
+          value: "production" # Example of environment variables
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
