@@ -2,43 +2,29 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kitty-project
-  namespace: webapp  # Make sure this matches your service's namespace
+  namespace: webapp  # Ensure the namespace is correct
 spec:
-  replicas: 2  # Number of pods to deploy
+  replicas: 2  # Deploy two pods for redundancy and scaling
   selector:
     matchLabels:
-      app: kitty-project  # This label should match the service's selector
+      app: kitty-project  # This label matches the service selector
   template:
     metadata:
       labels:
-        app: kitty-project
+        app: kitty-project  # Labels should match the service selector
     spec:
       containers:
         - name: kitty-project
-          image: divyasatpute/kitty:latest  # Ensure this is the correct image name
+          image: divyasatpute/kitty:latest  # Make sure this is the correct Docker image
           ports:
-            - containerPort: 8080  # Port your app listens on inside the container
+            - containerPort: 8501  # Port Streamlit listens on by default
           env:
-            - name: ENV_VARIABLE_NAME  # Example of environment variable (optional)
+            - name: ENV_VARIABLE_NAME  # Optional: Add environment variables here if needed
               value: "value"
-          resources: 
+          resources:
             requests:
               memory: "512Mi"
-              cpu: "500m"
+              cpu: "500m"  # Define resource requests for better scheduling
             limits:
               memory: "1Gi"
-              cpu: "1"
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kitty-project-service
-  namespace: webapp
-spec:
-  selector:
-    app: kitty-project  # Ensure this matches the label of the pods created by the deployment
-  ports:
-    - port: 80        # Port exposed externally
-      targetPort: 8080 # Internal port of the container
-  type: LoadBalancer   # Creates an external load balancer on cloud providers (e.g., AWS ELB)
+              cpu: "1"  # Define limits to prevent over-consumption of resources
